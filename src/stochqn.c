@@ -148,7 +148,10 @@ static inline void copy_arr(const double src[restrict], double dest[restrict], c
 	int chunk_size = n / nthreads;
 	int remainder = n % nthreads;
 
-	#pragma omp parallel for schedule(static, 1) firstprivate(src, dest, chunk_size, nthreads) num_threads(nthreads)
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
+
+	#pragma omp parallel for schedule(static, 1) firstprivate(src, dest, chunk_size, nthreads) num_threads(nthreads_non_const)
 	for (size_t_for i = 0; i < nthreads; i++){
 		memcpy(dest + i * chunk_size, src + i * chunk_size, sizeof(double) * chunk_size);
 	}
@@ -171,8 +174,10 @@ static inline void set_to_zero(double arr[], const int n, const int nthreads)
 	#endif
 	int chunk_size = n / nthreads;
 	int remainder = n % nthreads;
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
 
-	#pragma omp parallel for schedule(static, 1) firstprivate(arr, chunk_size, nthreads) num_threads(nthreads)
+	#pragma omp parallel for schedule(static, 1) firstprivate(arr, chunk_size, nthreads) num_threads(nthreads_non_const)
 	for (size_t_for i = 0; i < nthreads; i++){
 		memset(arr + i * chunk_size, 0, sizeof(double) * chunk_size);
 	}
@@ -194,7 +199,10 @@ static inline void multiply_elemwise(double inout[restrict], const double other[
 	size_t n_szt = (size_t) n;
 	#endif
 
-	#pragma omp parallel for if((n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(inout, other, n_szt) num_threads(nthreads)
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
+
+	#pragma omp parallel for if((n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(inout, other, n_szt) num_threads(nthreads_non_const)
 	for (size_t_for i = 0; i < n_szt; i++) inout[i] *= other[i];
 }
 
@@ -206,8 +214,11 @@ static inline void difference_elemwise(double out[restrict], const double later[
 	#else
 	size_t n_szt = (size_t) n;
 	#endif
+
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
 	
-	#pragma omp parallel for if( (n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(n_szt, out, later, earlier) num_threads(nthreads)
+	#pragma omp parallel for if( (n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(n_szt, out, later, earlier) num_threads(nthreads_non_const)
 	for (size_t_for i = 0; i < n_szt; i++) out[i] = later[i] - earlier[i];
 }
 
@@ -223,8 +234,11 @@ static inline int check_inf_nan(const double arr[], const int n, const int nthre
 				and it will ignore modifications of it within the same calling program,
 				so it very likely willnot end up cancelling for most use-cases.
 	*/
+
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
 	if ( (n > 1e8) && (nthreads > 4) ){
-		#pragma omp parallel for schedule(static) firstprivate(arr, n_szt) reduction(max: is_wrong) num_threads(nthreads)
+		#pragma omp parallel for schedule(static) firstprivate(arr, n_szt) reduction(max: is_wrong) num_threads(nthreads_non_const)
 		for (size_t i = 0; i < n_szt; i++){
 			if (isinf(arr[i])){
 				is_wrong = 1;
@@ -259,7 +273,10 @@ static inline void add_to_sum(const double new_values[restrict], double sum_arr[
 	size_t n_szt = (size_t) n;
 	#endif
 
-	#pragma omp parallel for if((n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(sum_arr, new_values, n_szt) num_threads(nthreads)
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
+
+	#pragma omp parallel for if((n > 1e6) && (nthreads_non_const > 4)) schedule(static) firstprivate(sum_arr, new_values, n_szt) num_threads(nthreads_non_const)
 	for (size_t_for i = 0; i < n_szt; i++) sum_arr[i] += new_values[i];
 }
 
@@ -707,18 +724,21 @@ static inline void update_sum_sq(double grad[restrict], double grad_sum_sq[restr
 	#endif
 	double weight_new;
 
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
+
 	/* RMSProp update */
 	if (rmsprop_weight > 0 && rmsprop_weight < 1)
 	{
 		weight_new = 1 - rmsprop_weight;
-		#pragma omp parallel for if( (n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(n_szt, grad, grad_sum_sq, rmsprop_weight, weight_new) num_threads(nthreads)
+		#pragma omp parallel for if( (n > 1e6) && (nthreads_non_const > 4)) schedule(static) firstprivate(n_szt, grad, grad_sum_sq, rmsprop_weight, weight_new) num_threads(nthreads_non_const)
 		for (size_t_for i = 0; i < n_szt; i++) grad_sum_sq[i] = rmsprop_weight*grad_sum_sq[i] + weight_new*(grad[i] * grad[i]);
 	}
 	
 	/* AdaGrad update */
 	else 
 	{
-		#pragma omp parallel for if( (n > 1e6) && (nthreads > 4)) schedule(static) firstprivate(n_szt, grad, grad_sum_sq) num_threads(nthreads)
+		#pragma omp parallel for if( (n > 1e6) && (nthreads_non_const > 4)) schedule(static) firstprivate(n_szt, grad, grad_sum_sq) num_threads(nthreads_non_const)
 		for (size_t_for i = 0; i < n_szt; i++) grad_sum_sq[i] += grad[i] * grad[i];
 	}
 }
@@ -747,11 +767,14 @@ static inline void diag_rescal(double direction[restrict], double grad[restrict]
 	size_t n_szt = (size_t) n;
 	#endif
 
+	/* oracle compilers cannot take 'const int' (CRAN requirement for building in solaris OS) */
+	int nthreads_non_const = nthreads;
+
 	if (direction == NULL) {
-		#pragma omp parallel for if( (n > 1e6) && (nthreads >= 4) ) schedule(static) firstprivate(direction, grad_sum_sq, scal_reg, n_szt) num_threads(nthreads)
+		#pragma omp parallel for if( (n > 1e6) && (nthreads_non_const >= 4) ) schedule(static) firstprivate(direction, grad_sum_sq, scal_reg, n_szt) num_threads(nthreads_non_const)
 		for (size_t_for i = 0; i < n_szt; i++) grad[i] /= sqrt(grad_sum_sq[i] + scal_reg);
 	} else {
-		#pragma omp parallel for if( (n > 1e6) && (nthreads >= 4) ) schedule(static) firstprivate(direction, grad_sum_sq, scal_reg, n_szt) num_threads(nthreads)
+		#pragma omp parallel for if( (n > 1e6) && (nthreads_non_const >= 4) ) schedule(static) firstprivate(direction, grad_sum_sq, scal_reg, n_szt) num_threads(nthreads_non_const)
 		for (size_t_for i = 0; i < n_szt; i++) direction[i] = grad[i] / sqrt(grad_sum_sq[i] + scal_reg);
 	}
 }
