@@ -87,12 +87,16 @@ extern "C" {
 /*	--------------- Preprocessor definitions ---------------	*/
 
 /* Aliasing for compiler optimizations */
-#ifndef restrict
-	#ifdef __restrict /* MSVC doesn't have proper support for these optimizations */
+#ifdef __cplusplus
+	#if defined(__GNUG__) || defined(__GNUC__) || defined(_MSC_VER) || defined(__clang__) || defined(__INTEL_COMPILER)
 		#define restrict __restrict
 	#else
 		#define restrict 
 	#endif
+#elif defined(_MSC_VER)
+	#define restrict __restrict
+#elif !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 199901L)
+	#define restrict 
 #endif
 
 /* In-lining for faster calls */

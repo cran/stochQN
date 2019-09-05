@@ -1,4 +1,4 @@
-0ffed5c416238359ccc24d50bf9efdb8 *DESCRIPTION
+4a422cf54fb4c6ef34a7ab99782a9979 *DESCRIPTION
 229f64c9d55b089990d7f02850c1ced1 *LICENSE
 4afb01b77a19d410099ea1cf64a0dd96 *NAMESPACE
 9b8233ea10e667eaac8e5ed46f008c62 *R/allocators.R
@@ -35,7 +35,7 @@ ec202dc687fbe1aa0867bae1848d390d *man/print.stoch_logistic.Rd
 b4876ed30fc410f319a7ff8eaa83a1c6 *man/update_fun.Rd
 8a2ad3e4ca5c9c66b349360c0d861b06 *man/update_gradient.Rd
 6a7517a95949c1b3ea611b16af4da51b *man/update_hess_vec.Rd
-c253f441587b7ac818f2b424725d4ddc *src/Makevars
+cb0ca932fccdabd63de1b313ee168ea8 *src/Makevars
 3262ca42bafd9a5783f7c1d4ce0f0c5b *src/Rwrapper.c
-106054fbea3a5cefc1cb4f7032523299 *src/blas_R.h
-563a1d19ad68a604ee86cdfb74612de1 *src/stochqn.c
+d80f2102b38b48f878c75df49015aa09 *src/blas_R.h
+0dd6cf6a4494d4d4ba3ae608b23a5f63 *src/stochqn.c
