@@ -83,6 +83,12 @@ extern "C" {
 	#include "blasfuns.h"
 #endif
 
+#ifdef _FOR_R
+	#include <R_ext/Visibility.h>
+#else
+	#define attribute_visible 
+#endif
+
 
 /*	--------------- Preprocessor definitions ---------------	*/
 
@@ -298,7 +304,7 @@ static inline void average_from_sum(double arr_sum[], const size_t n_summed, con
 	you'll probably want to skip it.	*/
 
 /*	--------- Beginning of initializers, deallocators, and updaters --------	*/
-bfgs_mem* initialize_bfgs_mem(const size_t mem_size, const int n, const double min_curvature, const double y_reg, const size_t upd_freq)
+bfgs_mem* attribute_visible initialize_bfgs_mem(const size_t mem_size, const int n, const double min_curvature, const double y_reg, const size_t upd_freq)
 {
 	double *s_bak;
 	double *y_bak;
@@ -329,7 +335,7 @@ bfgs_mem* initialize_bfgs_mem(const size_t mem_size, const int n, const double m
 	return out;
 }
 
-void dealloc_bfgs_mem(bfgs_mem *bfgs_memory)
+void attribute_visible dealloc_bfgs_mem(bfgs_mem *bfgs_memory)
 {
 	free(bfgs_memory->s_mem);
 	free(bfgs_memory->y_mem);
@@ -340,7 +346,7 @@ void dealloc_bfgs_mem(bfgs_mem *bfgs_memory)
 	free(bfgs_memory);
 }
 
-fisher_mem* initialize_fisher_mem(const size_t mem_size, const int n)
+fisher_mem* attribute_visible initialize_fisher_mem(const size_t mem_size, const int n)
 {
 	double *F = (double*) malloc(sizeof(double) * n * mem_size);
 	double *buffer_y = (double*) malloc(sizeof(double) * mem_size);
@@ -353,7 +359,7 @@ fisher_mem* initialize_fisher_mem(const size_t mem_size, const int n)
 	return out;
 }
 
-void dealloc_fisher_mem(fisher_mem *fisher_memory)
+void attribute_visible dealloc_fisher_mem(fisher_mem *fisher_memory)
 {
 	free(fisher_memory->F);
 	free(fisher_memory->buffer_y);
@@ -432,14 +438,14 @@ static inline int check_adaQN_nonnull(workspace_adaQN *adaQN)
 	return 0;
 }
 
-void dealloc_oLBFGS(workspace_oLBFGS *oLBFGS)
+void attribute_visible dealloc_oLBFGS(workspace_oLBFGS *oLBFGS)
 {
 	dealloc_bfgs_mem(oLBFGS->bfgs_memory);
 	free(oLBFGS->grad_prev);
 	free(oLBFGS);
 }
 
-void dealloc_SQN(workspace_SQN *SQN)
+void attribute_visible dealloc_SQN(workspace_SQN *SQN)
 {
 	dealloc_bfgs_mem(SQN->bfgs_memory);
 	free(SQN->grad_prev);
@@ -448,7 +454,7 @@ void dealloc_SQN(workspace_SQN *SQN)
 	free(SQN);
 }
 
-void dealloc_adaQN(workspace_adaQN *adaQN)
+void attribute_visible dealloc_adaQN(workspace_adaQN *adaQN)
 {
 	dealloc_bfgs_mem(adaQN->bfgs_memory);
 	if (!adaQN->use_grad_diff || adaQN->fisher_memory != NULL){
@@ -462,7 +468,7 @@ void dealloc_adaQN(workspace_adaQN *adaQN)
 	free(adaQN);
 }
 
-workspace_oLBFGS* initialize_oLBFGS(const int n, const size_t mem_size, const double hess_init,
+workspace_oLBFGS* attribute_visible initialize_oLBFGS(const int n, const size_t mem_size, const double hess_init,
 	const double y_reg, const double min_curvature, const int check_nan, const int nthreads)
 {
 	bfgs_mem *bfgs_memory = initialize_bfgs_mem(mem_size, n, min_curvature, y_reg, 1);
@@ -481,7 +487,7 @@ workspace_oLBFGS* initialize_oLBFGS(const int n, const size_t mem_size, const do
 	return out;
 }
 
-workspace_SQN* initialize_SQN(const int n, const size_t mem_size, const size_t bfgs_upd_freq, const double min_curvature,
+workspace_SQN* attribute_visible initialize_SQN(const int n, const size_t mem_size, const size_t bfgs_upd_freq, const double min_curvature,
 	const int use_grad_diff, const double y_reg, const int check_nan, const int nthreads)
 {
 	double *grad_prev;
@@ -506,7 +512,7 @@ workspace_SQN* initialize_SQN(const int n, const size_t mem_size, const size_t b
 	return out;
 }
 
-workspace_adaQN* initialize_adaQN(const int n, const size_t mem_size, const size_t fisher_size, const size_t bfgs_upd_freq,
+workspace_adaQN* attribute_visible initialize_adaQN(const int n, const size_t mem_size, const size_t fisher_size, const size_t bfgs_upd_freq,
 	const double max_incr, const double min_curvature, const double scal_reg, const double rmsprop_weight,
 	const int use_grad_diff, const double y_reg, const int check_nan, const int nthreads)
 {
@@ -982,7 +988,7 @@ static inline void update_y_hessvec(double hess_vec[], bfgs_mem *bfgs_memory, in
 	is requested externally. Check which part sent you to where you currently are,
 	and where is each part going to send you next.
 */
-int run_oLBFGS(double step_size, double x[], double grad[], double **req, task_enum *task, workspace_oLBFGS *oLBFGS, info_enum *iter_info)
+int attribute_visible run_oLBFGS(double step_size, double x[], double grad[], double **req, task_enum *task, workspace_oLBFGS *oLBFGS, info_enum *iter_info)
 {
 	*iter_info = no_problems_encountered;
 
@@ -1050,7 +1056,7 @@ int run_oLBFGS(double step_size, double x[], double grad[], double **req, task_e
 	return -1000;
 }
 
-int run_SQN(double step_size, double x[], double grad[], double hess_vec[], double **req, double **req_vec, task_enum *task, workspace_SQN *SQN, info_enum *iter_info)
+int attribute_visible run_SQN(double step_size, double x[], double grad[], double hess_vec[], double **req, double **req_vec, task_enum *task, workspace_SQN *SQN, info_enum *iter_info)
 {
 	*iter_info = no_problems_encountered;
 	int return_value = 0;
@@ -1175,7 +1181,7 @@ int run_SQN(double step_size, double x[], double grad[], double hess_vec[], doub
 		return return_value;
 }
 
-int run_adaQN(double step_size, double x[], double f, double grad[], double **req, task_enum *task, workspace_adaQN *adaQN, info_enum *iter_info)
+int attribute_visible run_adaQN(double step_size, double x[], double f, double grad[], double **req, task_enum *task, workspace_adaQN *adaQN, info_enum *iter_info)
 {
 	*iter_info = no_problems_encountered;
 	int return_value = 0;

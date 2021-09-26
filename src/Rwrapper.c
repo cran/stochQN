@@ -2,6 +2,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
+#include <R_ext/Visibility.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -210,7 +211,7 @@ static const R_CallMethodDef callMethods [] = {
 };
 
 
-void R_init_stochQN(DllInfo *info)
+void attribute_visible R_init_stochQN(DllInfo *info)
 {
     R_registerRoutines(info, NULL, callMethods, NULL, NULL);
     R_useDynamicSymbols(info, TRUE);
